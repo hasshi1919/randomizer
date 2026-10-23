@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="大会用抽選">
+<link rel="manifest" href="manifest.webmanifest">
+<title>大会用ランダム抽選ツール v7</title>
+<style>
+:root{--bg:#0b0d12;--panel:#171a21;--panel2:#101218;--line:#2d3340;--text:#f7f8fa;--muted:#9fa6b3;--pink:#ff4fa3;--purple:#725cff;--green:#62db96;--red:#ff737d}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 50% -10%,#33243e 0,#15131c 30%,var(--bg) 60%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;min-height:100vh}
+.wrap{width:min(980px,calc(100% - 22px));margin:22px auto 60px}
+header{text-align:center;margin-bottom:16px}
+h1{font-size:clamp(27px,6vw,44px);margin:0}
+.sub,.hint,.small{color:var(--muted)}
+.sub{margin-top:6px}.hint{font-size:13px;margin-top:8px}.small{font-size:12px}
+.card{background:rgba(23,26,33,.97);border:1px solid var(--line);border-radius:21px;padding:16px;margin-bottom:14px;box-shadow:0 18px 60px #0006}.sectionToggle{width:100%;border:0;background:transparent;color:var(--text);padding:0;display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;cursor:pointer}.sectionToggle h2{margin:0}.sectionBody{margin-top:12px}.sectionBody.closed{display:none}
+h2{font-size:19px;margin:0}.head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.count b{color:var(--green);font-size:21px}
+input,select{width:100%;background:#0e1117;color:white;border:1px solid #383e4b;border-radius:12px;padding:11px;font-size:16px;outline:none}
+input:focus,select:focus{border-color:var(--pink)}
+.btn{border:1px solid var(--line);background:#242933;color:#f4f4f6;border-radius:11px;padding:9px 12px;font-weight:800;cursor:pointer}
+.btn.primary{border:0;background:linear-gradient(135deg,var(--pink),var(--purple));color:white}
+.btn.green{border-color:#28523d;background:#163224;color:#9ff0bf}.btn.red{border-color:#58323a;background:#29171b;color:#ffb2b9}
+.btn:active,.tab:active{transform:translateY(1px)}
+.addrow{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:12px}
+.browser{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pane{background:var(--panel2);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.paneToggle{width:100%;border:0;background:transparent;color:var(--text);padding:13px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:16px;cursor:pointer;text-align:left}
+.paneToggle strong{font-size:16px}.arrow{color:var(--muted);font-size:15px}
+.paneBody{border-top:1px solid var(--line)}.paneBody.closed{display:none}
+.controls{display:grid;grid-template-columns:1fr auto;gap:7px;padding:10px;border-bottom:1px solid var(--line)}
+.list{max-height:360px;overflow:auto}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px 10px;border-bottom:1px solid #252a34}
+.row:last-child{border:0}.name{font-weight:700;overflow-wrap:anywhere}.rowBtns{display:flex;gap:5px}.mini{padding:7px 9px;font-size:12px}
+.empty{text-align:center;color:#747b88;padding:28px 12px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.tab{border:1px solid var(--line);background:#11141a;color:#c7cad3;border-radius:13px;padding:12px 5px;font-weight:900;cursor:pointer}
+.tab.active{background:linear-gradient(135deg,var(--pink),var(--purple));border-color:transparent;color:#fff}
+.settings{margin-top:14px}.hidden{display:none}
+.draw{width:100%;margin-top:13px;border:0;border-radius:14px;padding:15px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-size:18px;font-weight:950;cursor:pointer}
+.resultLine{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;align-items:center;padding:11px 4px;border-bottom:1px solid #292e39}
+.resultLine:last-child{border:0}.number{font-weight:950;color:#ff8bc3;font-size:20px}.resultName{font-weight:750}
+.groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.group{background:var(--panel2);border:1px solid var(--line);border-radius:15px;padding:13px}.group h3{margin:0 0 8px}.member{padding:6px 0;border-bottom:1px solid #272c36}.member:last-child{border:0}
+.actions,.backup{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.actions .btn,.backup .btn{flex:1}.sort{width:auto;min-width:100px}
+.historyItem{background:var(--panel2);border:1px solid var(--line);border-radius:14px;margin-bottom:9px;overflow:hidden}
+.historyToggle{width:100%;border:0;background:transparent;color:var(--text);padding:12px;display:flex;justify-content:space-between;gap:10px;text-align:left;cursor:pointer}
+.historyBody{padding:0 12px 12px;border-top:1px solid var(--line)}
+.historyBody.hidden{display:none}.historyMeta{color:var(--muted);font-size:12px}.historyPre{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;margin:10px 0 0}
+@media(max-width:680px){.browser{grid-template-columns:1fr}.addrow{grid-template-columns:1fr}.groups{grid-template-columns:1fr}.tab{font-size:12px}.wrap{margin-top:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1>🎲 大会用抽選ツール</h1></header>
+
+<div class="card">
+<button class="sectionToggle" id="section1Toggle" type="button"><span><h2>① 参加者を決める</h2></span><span style="display:flex;align-items:center;gap:10px"><span class="count">今回 <b id="todayCount">0</b>人</span><span class="arrow" id="section1Arrow">▼</span></span></button>
+<div class="sectionBody" id="section1Body">
+<div class="addrow"><input id="newName" placeholder="新しい参加者の名前"><button class="btn primary" id="addNew">＋ 新規登録 ＆ 今回参加</button></div>
+
+<div class="browser">
+ <div class="pane">
+  <button class="paneToggle" id="pastToggle" type="button"><span><strong>📚 過去の参加者</strong> <span class="small" id="pastCount">0人</span></span><span class="arrow" id="pastArrow">▼</span></button>
+  <div class="paneBody" id="pastBody">
+   <div class="controls"><input id="search" placeholder="🔎 名前を検索"><select id="sort" class="sort"><option value="registered">登録順</option><option value="name">名前順</option></select></div>
+   <div class="list" id="pastList"></div>
+  </div>
+ </div>
+ <div class="pane">
+  <button class="paneToggle" id="todayToggle" type="button"><span><strong>✅ 今回の参加者</strong> <span class="small" id="todayHeadCount">0人</span></span><span class="arrow" id="todayArrow">▼</span></button>
+  <div class="paneBody" id="todayBody">
+   <div style="display:flex;justify-content:flex-end;padding:9px;border-bottom:1px solid var(--line)"><button class="btn mini red" id="clearToday">全員外す</button></div>
+   <div class="list" id="todayList"></div>
+  </div>
+ </div>
+</div>
+
+<div class="backup">
+ <button class="btn" id="prevBtn">↩ 前回参加者を復元</button>
+ <button class="btn" id="exportBtn">💾 参加者バックアップ</button>
+ <button class="btn" id="importBtn">📂 バックアップ読込</button>
+ <input id="fileInput" type="file" accept=".json,application/json" class="hidden">
+</div>
+<div class="hint">参加者データはこのブラウザに保存されます。見出しを押すと参加者一覧を開閉できます。</div>
+</div>
+</div>
+
+<div class="card">
+<button class="sectionToggle" id="section2Toggle" type="button"><h2>② 抽選方法</h2><span class="arrow" id="section2Arrow">▼</span></button>
+<div class="sectionBody" id="section2Body">
+<div class="tabs"><button class="tab active" data-mode="numbers">抽選番号</button><button class="tab" data-mode="groups">グループ分け</button><button class="tab" data-mode="teams">チーム分け</button></div>
+<div class="settings">
+ <div id="numbersSet" class="hint">1〜今回の参加人数の番号をランダムに割り当て、結果は番号順に表示します。</div>
+ <div id="groupsSet" class="hidden"><label>グループ数</label><input id="groupCount" type="number" min="2" value="2"><div class="hint">人数差が最大1人になるよう均等に分けます。</div></div>
+ <div id="teamsSet" class="hidden"><label>基本チーム人数</label><select id="teamSize"><option value="2">2人チーム</option><option value="3">3人チーム</option></select><div class="hint">端数が出た場合は、1人チームを避けるよう調整します。</div></div>
+ <button class="draw" id="drawBtn">🎲 抽選する！</button>
+</div>
+</div>
+</div>
+
+<div class="card">
+<button class="sectionToggle" id="section3Toggle" type="button"><span><h2>③ 抽選結果</h2></span><span style="display:flex;align-items:center;gap:10px"><span class="small" id="badge"></span><span class="arrow" id="section3Arrow">▼</span></span></button>
+<div class="sectionBody" id="section3Body">
+<div id="result"><div class="empty">今回の参加者を追加して抽選してください</div></div>
+<div class="actions"><button class="btn" id="copyBtn">📋 結果をコピー</button><button class="btn" id="againBtn">🔄 もう一度抽選</button></div>
+</div>
+</div>
+
+<div class="card">
+<button class="sectionToggle" id="section4Toggle" type="button"><h2>④ 抽選履歴</h2><span class="arrow" id="section4Arrow">▼</span></button>
+<div class="sectionBody" id="section4Body">
+<div style="display:flex;justify-content:flex-end"><button class="btn mini red" id="clearHistory">履歴を全削除</button></div>
+<div class="hint" style="margin:0 0 10px">最新10回までブラウザに保存します。タイトルを押すと結果を開閉できます。</div>
+<div id="historyList"></div>
+</div>
+</div>
+</div>
+
+<script>
+const DBKEY="tournamentParticipantsV8", PREVKEY="tournamentPreviousV8", HISTORYKEY="tournamentHistoryV8";
+const $=id=>document.getElementById(id);
+let people=[],today=new Set(),mode="numbers",plainText="",history=[];
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function load(){
+ try{
+   let raw=localStorage.getItem(DBKEY);
+   if(!raw){
+     raw=localStorage.getItem("tournamentParticipantsV7");
+     if(raw)localStorage.setItem(DBKEY,raw);
+   }
+   people=JSON.parse(raw||"[]");
+   if(!Array.isArray(people))people=[];
+ }catch{people=[]}
+ try{
+   let prev=localStorage.getItem(PREVKEY);
+   if(!prev){
+     prev=localStorage.getItem("tournamentPreviousV7");
+     if(prev)localStorage.setItem(PREVKEY,prev);
+   }
+ }catch{}
+ try{
+   history=JSON.parse(localStorage.getItem(HISTORYKEY)||"[]");
+   if(!Array.isArray(history))history=[];
+ }catch{history=[]}
+}
+function safeGet(key){try{return localStorage.getItem(key)}catch(e){return null}}
+function safeSet(key,value){try{localStorage.setItem(key,value);return true}catch(e){return false}}
+function save(){safeSet(DBKEY,JSON.stringify(people))}
+function saveHistory(){localStorage.setItem(HISTORYKEY,JSON.stringify(history.slice(0,10)))}
+function addHistory(type,text,count){
+ history.unshift({id:uid(),time:Date.now(),type,text,count});
+ history=history.slice(0,10);saveHistory();renderHistory();
+}
+function renderHistory(){
+ const el=$("historyList");
+ if(!history.length){el.innerHTML='<div class="empty">まだ抽選履歴はありません</div>';return}
+ el.innerHTML=history.map((h,i)=>{
+   const d=new Date(h.time);
+   const date=d.toLocaleString("ja-JP",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"});
+   return `<div class="historyItem"><button class="historyToggle" data-hist="${h.id}"><span><b>${i+1}. ${esc(h.type)}</b><br><span class="historyMeta">${date} / ${h.count}人</span></span><span class="arrow">▶</span></button><div class="historyBody hidden" id="hist-${h.id}"><div class="historyPre">${esc(h.text)}</div></div></div>`;
+ }).join("");
+ document.querySelectorAll("[data-hist]").forEach(b=>b.onclick=()=>{
+   const body=$("hist-"+b.dataset.hist),closed=body.classList.toggle("hidden");
+   b.querySelector(".arrow").textContent=closed?"▶":"▼";
+ });
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+
+function render(){
+ let q=$("search").value.trim().toLowerCase();
+ let arr=people.filter(p=>p.name.toLowerCase().includes(q));
+ if($("sort").value==="name")arr.sort((a,b)=>a.name.localeCompare(b.name,"ja"));
+
+ $("pastList").innerHTML=arr.length?arr.map(p=>`<div class="row"><span class="name">${esc(p.name)}</span><span class="rowBtns">${today.has(p.id)?'<button class="btn mini green" disabled>参加中</button>':`<button class="btn mini green" data-add="${p.id}">＋ 今回参加</button>`}<button class="btn mini red" data-del="${p.id}">削除</button></span></div>`).join(""):'<div class="empty">該当する参加者はいません</div>';
+
+ let t=people.filter(p=>today.has(p.id));
+ $("todayList").innerHTML=t.length?t.map((p,i)=>`<div class="row"><span class="name">${i+1}. ${esc(p.name)}</span><button class="btn mini red" data-remove="${p.id}">外す</button></div>`).join(""):'<div class="empty">まだ誰も追加されていません</div>';
+
+ $("pastCount").textContent=people.length+"人";
+ $("todayCount").textContent=t.length;
+ $("todayHeadCount").textContent=t.length+"人";
+
+ document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{today.add(b.dataset.add);render()});
+ document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{today.delete(b.dataset.remove);render()});
+ document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+   const p=people.find(x=>x.id===b.dataset.del);
+   if(p&&confirm(`「${p.name}」を過去の参加者から削除しますか？`)){
+     people=people.filter(x=>x.id!==b.dataset.del);today.delete(b.dataset.del);save();render();
+   }
+ });
+}
+
+function addNew(){
+ const name=$("newName").value.trim();
+ if(!name)return;
+ let p=people.find(x=>x.name===name);
+ if(!p){p={id:uid(),name,created:Date.now()};people.push(p);save()}
+ today.add(p.id);$("newName").value="";render();
+}
+$("addNew").onclick=addNew;
+$("newName").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addNew()}});
+$("search").oninput=render;$("sort").onchange=render;
+$("clearToday").onclick=()=>{today.clear();render()};
+
+function setupToggle(buttonId,bodyId,arrowId){
+ $(buttonId).onclick=()=>{
+   const closed=$(bodyId).classList.toggle("closed");
+   $(arrowId).textContent=closed?"▶":"▼";
+ };
+}
+setupToggle("pastToggle","pastBody","pastArrow");
+setupToggle("todayToggle","todayBody","todayArrow");
+setupToggle("section1Toggle","section1Body","section1Arrow");
+setupToggle("section2Toggle","section2Body","section2Arrow");
+setupToggle("section3Toggle","section3Body","section3Arrow");
+setupToggle("section4Toggle","section4Body","section4Arrow");
+
+$("prevBtn").onclick=()=>{
+ try{const ids=JSON.parse(safeGet(PREVKEY)||"[]");today=new Set(ids.filter(id=>people.some(p=>p.id===id)));render()}catch{}
+};
+
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+ mode=b.dataset.mode;
+ document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));
+ $("numbersSet").classList.toggle("hidden",mode!=="numbers");
+ $("groupsSet").classList.toggle("hidden",mode!=="groups");
+ $("teamsSet").classList.toggle("hidden",mode!=="teams");
+});
+
+function chosen(){return people.filter(p=>today.has(p.id))}
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function letter(i){let s="";i++;while(i){i--;s=String.fromCharCode(65+i%26)+s;i=Math.floor(i/26)}return s}
+function remember(){safeSet(PREVKEY,JSON.stringify([...today]))}
+function boxesHTML(boxes,prefix,useLetter=false){return '<div class="groups">'+boxes.map((b,i)=>`<div class="group"><h3>${prefix}${useLetter?letter(i):i+1} <span class="small">(${b.length}人)</span></h3>${b.map(p=>`<div class="member">${esc(p.name)}</div>`).join("")}</div>`).join("")+'</div>'}
+
+function draw(){
+ const a=chosen();
+ if(!a.length){alert("今回の参加者を追加してください");return}
+ remember();
+
+ if(mode==="numbers"){
+   const shuffled=shuffle(a);
+   const assignments=shuffled.map((p,i)=>({person:p,number:i+1}));
+   assignments.sort((x,y)=>x.number-y.number);
+   $("result").innerHTML=assignments.map(x=>`<div class="resultLine"><span class="number">${x.number}番</span><span class="resultName">${esc(x.person.name)}</span></div>`).join("");
+   plainText=assignments.map(x=>`${x.number}番 → ${x.person.name}`).join("\n");
+   $("badge").textContent=`${a.length}人 / 番号順`;
+   addHistory("抽選番号",plainText,a.length);
+ }else if(mode==="groups"){
+   const g=Number($("groupCount").value);
+   if(!Number.isInteger(g)||g<2||g>a.length){alert(`グループ数は2〜${a.length}で指定してください`);return}
+   const s=shuffle(a),boxes=Array.from({length:g},()=>[]);
+   s.forEach((p,i)=>boxes[i%g].push(p));
+   $("result").innerHTML=boxesHTML(boxes,"グループ ",true);
+   plainText=boxes.map((b,i)=>`【グループ ${letter(i)}】\n${b.map(p=>p.name).join("\n")}`).join("\n\n");
+   $("badge").textContent=`${a.length}人 → ${g}グループ`;
+   addHistory("グループ分け",plainText,a.length);
+ }else{
+   if(a.length<2){alert("2人以上選択してください");return}
+   let n=a.length,target=Number($("teamSize").value),sizes=[];
+   if(target===2){if(n%2){sizes.push(3);n-=3}while(n>0){sizes.push(2);n-=2}}
+   else{while(n>0){if(n===2){sizes.push(2);break}if(n===4){sizes.push(2,2);break}sizes.push(3);n-=3}}
+   const s=shuffle(a);let pos=0;
+   const boxes=sizes.map(sz=>{const b=s.slice(pos,pos+sz);pos+=sz;return b});
+   $("result").innerHTML=boxesHTML(boxes,"チーム ");
+   plainText=boxes.map((b,i)=>`【チーム ${i+1}】\n${b.map(p=>p.name).join("\n")}`).join("\n\n");
+   $("badge").textContent=`${a.length}人 / 基本${target}人`;
+   addHistory("チーム分け",plainText,a.length);
+ }
+}
+$("drawBtn").onclick=draw;$("againBtn").onclick=draw;
+
+$("copyBtn").onclick=async()=>{
+ if(!plainText){alert("先に抽選してください");return}
+ try{await navigator.clipboard.writeText(plainText);alert("コピーしました！")}catch{prompt("コピーしてください",plainText)}
+};
+
+$("exportBtn").onclick=()=>{
+ const blob=new Blob([JSON.stringify({version:2,participants:people,history:history,previous:JSON.parse(localStorage.getItem(PREVKEY)||"[]")},null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="参加者バックアップ.json";a.click();URL.revokeObjectURL(url);
+};
+$("importBtn").onclick=()=>$("fileInput").click();
+$("fileInput").onchange=e=>{
+ const f=e.target.files[0];if(!f)return;
+ const r=new FileReader();
+ r.onload=()=>{
+  try{
+   const d=JSON.parse(r.result),arr=Array.isArray(d)?d:d.participants;
+   if(!Array.isArray(arr))throw 0;
+   const names=new Set(people.map(p=>p.name));let added=0;
+   arr.forEach(x=>{
+    const name=String(typeof x==="string"?x:x.name||"").trim();
+    if(name&&!names.has(name)){people.push({id:uid(),name,created:Date.now()});names.add(name);added++}
+   });
+   if(d && !Array.isArray(d) && Array.isArray(d.history)){
+     history=d.history.slice(0,10);saveHistory();
+   }
+   if(d && !Array.isArray(d) && Array.isArray(d.previous)){
+     localStorage.setItem(PREVKEY,JSON.stringify(d.previous));
+   }
+   save();render();renderHistory();alert(`${added}人を追加しました`);
+  }catch{alert("バックアップを読み込めませんでした")}
+ };
+ r.readAsText(f);e.target.value="";
+};
+
+$("clearHistory").onclick=()=>{
+ if(!history.length)return;
+ if(confirm("抽選履歴をすべて削除しますか？")){history=[];saveHistory();renderHistory()}
+};
+load();render();renderHistory();
+</script>
+<script>
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>

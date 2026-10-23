@@ -1,0 +1,10 @@
+{
+  "name": "大会用抽選ツール",
+  "short_name": "大会用抽選",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0d12",
+  "theme_color": "#0b0d12",
+  "description": "参加者管理・抽選番号・グループ分け・チーム分けができる大会用抽選ツール"
+}
